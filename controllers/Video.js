@@ -70,7 +70,7 @@ export const addView = async (req, res, next) => {
 
 export const random = async (req, res, next) => {
   try {
-    const videos = await Video.aggregate([{ $sample: { size: 40 } }]);
+    const videos = await Video.aggregate([{ $sample: { size: 2 } }]);
     res.status(200).json(videos);
   } catch (err) {
     next(err);
@@ -91,12 +91,14 @@ export const sub = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     const subscribedChannels = user.subscribedUsers;
 
+    // using sub id, map this id & getting videos from "Video" collection
     const list = await Promise.all(
       subscribedChannels.map(async (channelId) => {
         return await Video.find({ userId: channelId });
       })
     );
 
+    // here "list" is a nested array, so use "flat()" method, also sort to get latest list
     res.status(200).json(list.flat().sort((a, b) => b.createdAt - a.createdAt));
   } catch (err) {
     next(err);
